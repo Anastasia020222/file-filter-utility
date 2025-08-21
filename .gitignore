@@ -1,0 +1,10 @@
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+*.class
+.idea
+*.iml
+*.txt
