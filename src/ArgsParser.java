@@ -52,7 +52,6 @@ public class ArgsParser {
         result_dir = pathResultDir(result_dir);
         if (prefix.isEmpty()) {
             prefix = "result_";
-            //throw new IllegalArgumentException("Аргумент -p отсутствует");
         }
 
         if (files.isEmpty()) {
