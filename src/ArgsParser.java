@@ -1,3 +1,5 @@
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,40 +12,72 @@ public class ArgsParser {
         boolean addExistingFiles = false;
         boolean briefStatisticsOutput = false;
         boolean fullStatisticsOutput = false;
-
         List<Path> files = new ArrayList<>();
 
         for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-o")) {
-                if (i + 1 >= args.length || args[i + 1].startsWith("-")) {
-                    throw new IllegalArgumentException("-o требует указать путь к директории");
-                }
-                result_dir = Path.of(args[++i]);
-            } else if (args[i].equals("-p")) {
-                if (i + 1 >= args.length || args[i + 1].startsWith("-")) {
-                    throw new IllegalArgumentException("-p требует указать префикс");
-                }
-                prefix = args[++i];
-            } else if (args[i].equals("-a")) {
-                addExistingFiles = true;
-            } else if (args[i].equals("-s")) {
-                briefStatisticsOutput = true;
-            } else if (args[i].equals("-f")) {
-                fullStatisticsOutput = true;
-            } else if (args[i].endsWith(".txt")) {
-                files.add(Path.of(args[i]));
-            } else {
-                throw new IllegalArgumentException("Неизвестный аргумент: " + args[i]);
+            switch (args[i]) {
+                case "-o":
+                    if (i + 1 >= args.length || args[i + 1].startsWith("-")) {
+                        result_dir = pathResultDir(result_dir);
+                    } else {
+                        Path c = Path.of(args[++i]);
+                        checkDirectory(c);
+                        result_dir = c;
+                    }
+                    break;
+                case "-p":
+                    if (i + 1 >= args.length || args[i + 1].startsWith("-") || args[i + 1].endsWith(".txt")) {
+                        throw new IllegalArgumentException("-p требует указать префикс");
+                    }
+                    prefix = args[++i];
+                    break;
+                case "-a":
+                    addExistingFiles = true;
+                    break;
+                case "-s":
+                    briefStatisticsOutput = true;
+                    break;
+                case "-f":
+                    fullStatisticsOutput = true;
+                    break;
+                default:
+                    if (args[i].endsWith(".txt")) {
+                        files.add(Path.of(args[i]));
+                    } else {
+                        throw new IllegalArgumentException("Неизвестная опция: " + args[i]);
+                    }
+                    break;
             }
         }
-
-        if (result_dir == null) {
-            throw new IllegalArgumentException("Аргумент -o отсутствует");
-        }
+        pathResultDir(result_dir);
         if (prefix.isEmpty()) {
             throw new IllegalArgumentException("Аргумент -p отсутствует");
         }
 
+        if (files.isEmpty()) {
+            System.out.println("Входящие файлы отсутствуют.");
+        }
+
         return new Config(result_dir, prefix, addExistingFiles, briefStatisticsOutput, fullStatisticsOutput, files);
+    }
+
+    private static Path pathResultDir(Path result_dir) {
+        if (result_dir == null) {
+            String currentDir = System.getProperty("user.dir");
+            return Path.of(currentDir);
+        } else {
+            return result_dir;
+        }
+    }
+
+    private static void checkDirectory(Path directory) {
+        if (!Files.exists(directory) && !Files.isDirectory(directory)) {
+            System.out.println("Указанная директория не существует. Она будет создана.");
+            try {
+                Files.createDirectories(directory);
+            } catch (IOException e) {
+                throw new RuntimeException("Не удалось создать директорию " + e);
+            }
+        }
     }
 }

@@ -1,8 +1,8 @@
 public enum DataType {
 
-    FILE_INTS("_integers.txt"),
-    FILE_FLOATS("_floats.txt"),
-    FILE_STRINGS("_strings.txt");
+    FILE_INTS("integers.txt"),
+    FILE_FLOATS("floats.txt"),
+    FILE_STRINGS("strings.txt");
 
     private final String dataType;
 

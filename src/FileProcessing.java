@@ -21,36 +21,48 @@ public class FileProcessing {
         int floatCount = 1;
         int strCount = 1;
 
-        try (PrintWriter pwInt = writer(DataType.FILE_INTS.getDataType());
-             PrintWriter pwFloat = writer(DataType.FILE_FLOATS.getDataType());
-             PrintWriter pwStr = writer(DataType.FILE_STRINGS.getDataType())) {
+        PrintWriter pwInt = null;
+        PrintWriter pwFloat = null;
+        PrintWriter pwStr = null;
 
+        try {
             for (Path file : config.getInputFiles()) {
                 try (BufferedReader reader = new BufferedReader(new FileReader(file.toFile()))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         if (checkingDataTypeInteger(line)) {
+                            if (pwInt == null) {
+                                pwInt = writer(DataType.FILE_INTS.getDataType());
+                            }
                             statistics.put("Integer", integerCount);
                             integerCount++;
                             pwInt.println(line);
                         } else if (checkingDataTypeFloat(line)) {
+                            if (pwFloat == null) {
+                                pwFloat = writer(DataType.FILE_FLOATS.getDataType());
+                            }
                             statistics.put("Float", floatCount);
                             floatCount++;
                             pwFloat.println(line);
                         } else {
+                            if (pwStr == null) {
+                                pwStr = writer(DataType.FILE_STRINGS.getDataType());
+                            }
                             statistics.put("String", strCount);
                             strCount++;
                             pwStr.println(line);
                         }
                     }
                 } catch (FileNotFoundException e) {
-                    throw new FileNotFoundException("Файл " + file + " не найден: " + e);
-                } catch (IOException e) {
-                    throw new IOException("Ошибка при чтении файла " + file + e);
+                    System.out.println("\u001b[31mФайл " + file + " не найден: " + e + "\u001b[0m");
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (pwInt != null) pwInt.close();
+            if (pwFloat != null) pwFloat.close();
+            if (pwStr != null) pwStr.close();
         }
         operationsData.printBriefStatistics(statistics);
         operationsData.printFullStatistics();
@@ -64,20 +76,18 @@ public class FileProcessing {
     }
 
     private boolean checkingDataTypeInteger(String line) {
-        try {
-            Integer.parseInt(line);
-            return true;
-        } catch (NumberFormatException e) {
+        if (line == null || line.isEmpty()) {
             return false;
         }
+        return line.trim().matches("[+-]?\\d+");
     }
 
     private boolean checkingDataTypeFloat(String line) {
-        try {
-            Double.parseDouble(line);
-            return line.contains(".") || line.toLowerCase().contains("e");
-        } catch (NumberFormatException e) {
+        if (line == null || line.isEmpty()) {
             return false;
         }
+        return line.trim().matches(
+                "^[-+]?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE][-+]?[0-9]+)?$"
+        );
     }
 }
