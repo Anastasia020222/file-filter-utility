@@ -49,9 +49,10 @@ public class ArgsParser {
                     break;
             }
         }
-        pathResultDir(result_dir);
+        result_dir = pathResultDir(result_dir);
         if (prefix.isEmpty()) {
-            throw new IllegalArgumentException("Аргумент -p отсутствует");
+            prefix = "result_";
+            //throw new IllegalArgumentException("Аргумент -p отсутствует");
         }
 
         if (files.isEmpty()) {
